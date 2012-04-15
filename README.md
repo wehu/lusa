@@ -1,12 +1,20 @@
-## lusa
+# lusa
 
 lusa mixes in lua-like syntax into scheme. The implementation is based on Racket's reader system.
 
-### Basic syntax
+## Basic syntax
 
 `~' is used to embrace the new syntax.
 
-### Examples
+	~array0 = {~self.0 = "a"~
+        	   ~self.1 = "b"~}~
+	~array0.each = {|cb| (hash-map self cb)}~
+	~array0.each () {|k v|
+        	         (display k)
+                	 (display v)}~
+
+
+## Examples
 
 * Create a closure: `|' follows `{'
 
