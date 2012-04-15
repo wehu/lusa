@@ -59,7 +59,7 @@
              (regexp-try-match #px"^\\s*\\)" in))
     [(list _) pre]
     [(list _ #"{" params) (with-syntax ([p pre]
-                                        [c (read-lusa-closure params src in)])
+                                        [c (read-lusa-closure (bytes-append #"self " params) src in)])
                             #'(cons c p))]
     [else (with-syntax ([p pre]
                         [c (read-syntax src in)])
