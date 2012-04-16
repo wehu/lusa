@@ -81,9 +81,17 @@
                        [1 (string->symbol (car ids))]
                        [else (foldl
                               (lambda (p h)
-                                (with-syntax ([ho h]
-                                              [po (string->symbol p)])
-                                  #'(hash-ref ho 'po)))
+                                (match (or (regexp-match #px"^\\[([\\d\\\"][^\\]]*)\\]" p)
+                                           (regexp-match #px"^(\\[)([^\\]]+)\\]" p))
+                                  [(list _ pp) (with-syntax ([ho h]
+                                                             [po (string->symbol pp)])
+                                                 #'(hash-ref ho 'po))]
+                                  [(list _ "[" pp) (with-syntax ([ho h]
+                                                                  [po (string->symbol pp)])
+                                                      #'(hash-ref ho po))]
+                                  [else (with-syntax ([ho h]
+                                                      [po (string->symbol p)])
+                                          #'(hash-ref ho 'po))]))
                               (with-syntax ([io (string->symbol (car ids))])
                                 #'io)
                               (cdr ids))])])
@@ -156,7 +164,7 @@
 ;; parent object will be passed to self parameter
 (define (read-lusa-call id src in)
   (define parent #"")
-  (match (regexp-match #px"^(.*)\\.[\\w\\_\\d]+$" id)
+  (match (regexp-match #px"^(.*)\\.[\\w\\_\\d\\[\\]\\\"]+$" id)
     [(list _ p) (set! parent p)]
     [else (set! parent #"")])
   (with-syntax ([f (read-lusa-ref id src in)]
@@ -169,11 +177,11 @@
   (regexp-match #px"^\\s*" in)
   (match (or (regexp-try-match #px"^(\\{)\\s*\\|\\s*([^|]*)\\s*\\|" in)
              (regexp-try-match #px"^(\\{)" in)
-             (regexp-try-match #px"^([\\w\\_\\d\\.]+)\\s*(=)\\s*(\\{)\\s*\\|\\s*([^|]*)\\s*\\|" in)
-             (regexp-try-match #px"^([\\w\\_\\d\\.]+)\\s*(=)\\s*(\\{)" in)
-             (regexp-try-match #px"^([\\w\\_\\d\\.]+)\\s*(=)" in)
-             (regexp-try-match #px"^([\\w\\_\\d\\.]+)\\s*(\\()" in)
-             (regexp-try-match #px"^([\\w\\_\\d\\.]+)" in))
+             (regexp-try-match #px"^([\\w\\_\\d\\.\\[\\]\\\"]+)\\s*(=)\\s*(\\{)\\s*\\|\\s*([^|]*)\\s*\\|" in)
+             (regexp-try-match #px"^([\\w\\_\\d\\.\\[\\]\\\"]+)\\s*(=)\\s*(\\{)" in)
+             (regexp-try-match #px"^([\\w\\_\\d\\.\\[\\]\\\"]+)\\s*(=)" in)
+             (regexp-try-match #px"^([\\w\\_\\d\\.\\[\\]\\\"]+)\\s*(\\()" in)
+             (regexp-try-match #px"^([\\w\\_\\d\\.\\[\\]\\\"]+)" in))
     [(list _ #"{" params) (read-lusa-closure params src in)]
     [(list _ #"{") (read-lusa-expr-list #'(void) src in)]
     [(list _ id) (read-lusa-ref id src in)]

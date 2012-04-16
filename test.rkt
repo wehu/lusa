@@ -19,6 +19,8 @@
 
 ~array0 = {~self.0 = "a"~
            ~self.1 = "b"~}~
+
+~array0.[0]~
 ~array0.each = {|cb| (hash-map self cb)}~
 ~array0.each () {|k v|
                  (display k)
